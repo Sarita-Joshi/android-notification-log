@@ -30,6 +30,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
 	private Preference prefStatus;
 	private Preference prefBrowse;
+	private Preference prefFavorites;
 	private Preference prefText;
 	private Preference prefOngoing;
 
@@ -51,6 +52,14 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 		if(prefBrowse != null) {
 			prefBrowse.setOnPreferenceClickListener(preference -> {
 				startActivity(new Intent(getActivity(), BrowseActivity.class));
+				return true;
+			});
+		}
+
+		prefFavorites = pm.findPreference(Const.PREF_FAVORITES);
+		if(prefFavorites != null) {
+			prefFavorites.setOnPreferenceClickListener(preference -> {
+				startActivity(new Intent(getActivity(), FavoritesActivity.class));
 				return true;
 			});
 		}
@@ -125,6 +134,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 			long numRowsPosted = DatabaseUtils.queryNumEntries(db, DatabaseHelper.PostedEntry.TABLE_NAME);
 			int stringResource = numRowsPosted == 1 ? R.string.settings_browse_summary_singular : R.string.settings_browse_summary_plural;
 			prefBrowse.setSummary(getString(stringResource, numRowsPosted));
+
+			long numRowsFavorite = DatabaseUtils.queryNumEntries(db, DatabaseHelper.PostedEntry.TABLE_NAME,
+					DatabaseHelper.PostedEntry.COLUMN_NAME_FAVORITE+"=?", new String[]{String.valueOf(1)});
+			int stringResource1 = numRowsFavorite == 1 ? R.string.settings_browse_summary_singular : R.string.settings_browse_summary_plural;
+			prefFavorites.setSummary(getString(stringResource1, numRowsFavorite));
 		} catch (Exception e) {
 			if(Const.DEBUG) e.printStackTrace();
 		}

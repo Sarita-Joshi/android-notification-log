@@ -10,17 +10,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	private static final int DATABASE_VERSION = 1;
 	private static final String DATABASE_NAME = "notifications.db";
 
+
 	// Posted notifications
 
 	public static abstract class PostedEntry implements BaseColumns {
 		public static final String TABLE_NAME = "notifications_posted";
 		public static final String COLUMN_NAME_CONTENT = "content";
+		public static final String COLUMN_NAME_FAVORITE = "favorite";
 	}
 
 	public static final String SQL_CREATE_ENTRIES_POSTED =
 			"CREATE TABLE " + PostedEntry.TABLE_NAME + " (" +
 					PostedEntry._ID + " INTEGER PRIMARY KEY," +
-					PostedEntry.COLUMN_NAME_CONTENT + " TEXT)";
+					PostedEntry.COLUMN_NAME_CONTENT + " TEXT," +
+					PostedEntry.COLUMN_NAME_FAVORITE + " INTEGER DEFAULT 0)";
 
 	public static final String SQL_DELETE_ENTRIES_POSTED =
 			"DROP TABLE IF EXISTS " + PostedEntry.TABLE_NAME;
@@ -32,6 +35,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		public static final String COLUMN_NAME_CONTENT = "content";
 	}
 
+
 	public static final String SQL_CREATE_ENTRIES_REMOVED =
 			"CREATE TABLE " + RemovedEntry.TABLE_NAME + " (" +
 					RemovedEntry._ID + " INTEGER PRIMARY KEY," +
@@ -39,6 +43,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	public static final String SQL_DELETE_ENTRIES_REMOVED =
 			"DROP TABLE IF EXISTS " + RemovedEntry.TABLE_NAME;
+
 
 	// Implementation
 

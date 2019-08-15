@@ -1,5 +1,6 @@
 package org.hcilab.projects.nlogx.ui;
 
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -11,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -46,6 +48,9 @@ public class DetailsActivity extends AppCompatActivity {
 	private String packageName;
 	private int appUid;
 	private AlertDialog dialog;
+	JSONObject json = null;
+
+	String titleText, contentText, date;
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -65,6 +70,7 @@ public class DetailsActivity extends AppCompatActivity {
 		}
 	}
 
+	Menu menu1=null;
 	@Override
 	protected void onPause() {
 		if(dialog != null && dialog.isShowing()) {
@@ -77,19 +83,76 @@ public class DetailsActivity extends AppCompatActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.details, menu);
+
+		if(getIntent().getStringExtra("EXTRA_INFO").equals("hide")){
+			menu.findItem(R.id.menu_favorite_remove).setVisible(false);
+			menu.findItem(R.id.menu_favorite).setVisible(false);
+		}else{
+
+				menu.findItem(R.id.menu_favorite_remove).setVisible(false);
+				menu.findItem(R.id.menu_favorite).setVisible(true);
+
+		}
+		menu1=menu;
 		return true;
 	}
 
+
+
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-		if(item.getItemId() == R.id.menu_delete) {
-			confirmDelete();
+		switch(item.getItemId()) {
+			case R.id.menu_delete: {
+				confirmDelete();
+				break;
+			}
+			case R.id.menu_favorite: {
+				item.setVisible(false);
+				menu1.findItem(R.id.menu_favorite_remove).setVisible(true);
+				addToFavorites();
+				Log.d("MENU OPT", "favorite");
+				break;
+			}
+			case R.id.menu_favorite_remove:{
+				item.setVisible(false);
+				menu1.findItem(R.id.menu_favorite).setVisible(true);
+				removeFavorites();
+				Log.d("MENU OPT", "favorite remove");
+				break;
+			}
 		}
 		return super.onOptionsItemSelected(item);
 	}
 
+	private void removeFavorites() {
+
+		Log.v("METHOD", "favorite remove");
+		DatabaseHelper helper = new DatabaseHelper(this);
+		SQLiteDatabase db = helper.getWritableDatabase();
+		ContentValues contentValues = new ContentValues();
+		contentValues.put(DatabaseHelper.PostedEntry.COLUMN_NAME_FAVORITE, 0);
+		db.update(DatabaseHelper.PostedEntry.TABLE_NAME, contentValues, "_ID="+id,null );
+
+
+		Toast.makeText(DetailsActivity.this, "Removed from favorites", Toast.LENGTH_SHORT).show();
+
+	}
+
+	private void addToFavorites() {
+
+		Log.v("METHOD", "favorite");
+		DatabaseHelper helper = new DatabaseHelper(this);
+		SQLiteDatabase db = helper.getWritableDatabase();
+		ContentValues contentValues = new ContentValues();
+		contentValues.put(DatabaseHelper.PostedEntry.COLUMN_NAME_FAVORITE, 1);
+		db.update(DatabaseHelper.PostedEntry.TABLE_NAME, contentValues, "_ID="+id,null );
+
+		Toast.makeText(DetailsActivity.this, "Added to favorites", Toast.LENGTH_SHORT).show();
+
+	}
+
 	private void loadDetails(String id) {
-		JSONObject json = null;
+
 		String str = "error";
 		try {
 			DatabaseHelper databaseHelper = new DatabaseHelper(this);
@@ -130,8 +193,8 @@ public class DetailsActivity extends AppCompatActivity {
 		CardView buttons = findViewById(R.id.buttons);
 		if(json != null) {
 			packageName = json.optString("packageName", "???");
-			String titleText   = json.optString("title");
-			String contentText = json.optString("text");
+			titleText   = json.optString("title");
+			contentText = json.optString("text");
 			String text = (titleText + "\n" + contentText).trim();
 			if(!"".equals(text)) {
 				card.setVisibility(View.VISIBLE);

@@ -14,5 +14,6 @@
 
     <color name="colorBackgroundDanger">#C62828</color>
     <color name="colorBackgroundSuccess">#4285F4</color>
+    <color name="green">#00AA00</color>
 
 </resources>

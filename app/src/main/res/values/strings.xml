@@ -29,6 +29,9 @@
     <string name="settings_browse_summary_singular">%1$d notification</string>
     <string name="settings_browse_summary_plural">%1$d notifications</string>
 
+    <!-- Favoritea -->
+    <string name="settings_favorites">View Favorites</string>
+
     <!-- Log text -->
     <string name="settings_text">Log Text</string>
     <string name="settings_text_summary">Log the actual notification content. This increases the size of the log file but allows you to read past messages.</string>

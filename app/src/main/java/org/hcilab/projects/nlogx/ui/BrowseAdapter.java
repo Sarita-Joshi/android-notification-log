@@ -1,6 +1,7 @@
 package org.hcilab.projects.nlogx.ui;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -8,9 +9,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityOptionsCompat;
@@ -33,6 +36,7 @@ class BrowseAdapter extends RecyclerView.Adapter<BrowseViewHolder> {
 
 	private final static int LIMIT = Integer.MAX_VALUE;
 	private final static String PAGE_SIZE = "20";
+	private Boolean flag = false;
 
 	private DateFormat format = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
 
@@ -44,8 +48,9 @@ class BrowseAdapter extends RecyclerView.Adapter<BrowseViewHolder> {
 	private String lastDate = "";
 	private boolean shouldLoadMore = true;
 
-	BrowseAdapter(Activity context) {
+	BrowseAdapter(Activity context, Boolean flag) {
 		this.context = context;
+		this.flag = flag;
 		loadMore(Integer.MAX_VALUE);
 	}
 
@@ -59,6 +64,7 @@ class BrowseAdapter extends RecyclerView.Adapter<BrowseViewHolder> {
 			if(id != null) {
 				Intent intent = new Intent(context, DetailsActivity.class);
 				intent.putExtra(DetailsActivity.EXTRA_ID, id);
+				intent.putExtra("EXTRA_INFO", "show");
 				if(Build.VERSION.SDK_INT >= 21) {
 					Pair<View, String> p1 = Pair.create(vh.icon, "icon");
 					@SuppressWarnings("unchecked") ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(context, p1);
@@ -122,18 +128,21 @@ class BrowseAdapter extends RecyclerView.Adapter<BrowseViewHolder> {
 		try {
 			DatabaseHelper databaseHelper = new DatabaseHelper(context);
 			SQLiteDatabase db = databaseHelper.getReadableDatabase();
+			Cursor cursor=null;
 
-			Cursor cursor = db.query(DatabaseHelper.PostedEntry.TABLE_NAME,
-					new String[] {
-							DatabaseHelper.PostedEntry._ID,
-							DatabaseHelper.PostedEntry.COLUMN_NAME_CONTENT
-					},
-					DatabaseHelper.PostedEntry._ID + " < ?",
-					new String[] {""+afterId},
-					null,
-					null,
-					DatabaseHelper.PostedEntry._ID + " DESC",
-					PAGE_SIZE);
+
+				 cursor = db.query(DatabaseHelper.PostedEntry.TABLE_NAME,
+						new String[]{
+								DatabaseHelper.PostedEntry._ID,
+								DatabaseHelper.PostedEntry.COLUMN_NAME_CONTENT
+						},
+						DatabaseHelper.PostedEntry._ID + " < ?",
+						new String[]{"" + afterId},
+						null,
+						null,
+						DatabaseHelper.PostedEntry._ID + " DESC",
+						PAGE_SIZE);
+
 
 			if(cursor != null && cursor.moveToFirst()) {
 				for(int i = 0; i < cursor.getCount(); i++) {
@@ -144,7 +153,6 @@ class BrowseAdapter extends RecyclerView.Adapter<BrowseViewHolder> {
 						dataItem.setShowDate(false);
 					}
 					lastDate = thisDate;
-
 					data.add(dataItem);
 					cursor.moveToNext();
 				}
@@ -169,6 +177,19 @@ class BrowseAdapter extends RecyclerView.Adapter<BrowseViewHolder> {
 		}
 
 		handler.post(() -> notifyDataSetChanged());
+	}
+
+
+
+	public void deleteItem(int position) {
+		long id = data.get(position).id;
+		Log.v("METHOD", "delete favorite");
+		DatabaseHelper helper = new DatabaseHelper(context);
+		SQLiteDatabase db = helper.getWritableDatabase();
+		db.delete(DatabaseHelper.PostedEntry.TABLE_NAME, "_ID="+id,null );
+		data.remove(position);
+		notifyItemRemoved(position);
+		notifyItemRangeChanged(position, data.size());
 	}
 
 	private class DataItem {
